@@ -1,0 +1,332 @@
+файлик составлен для проверки результатов, полученных через DAX
+
+Total Loan Applications
+select count(id) as Total_Loan_Applications from bank_loan_data
+Result: 38576
+
+MTD (Month-to-Date) Loan Applications
+select count(id) as MTD_Total_Loan_Applications from bank_loan_data
+where month(issue_date) = 12 and year(issue_date) = 2021
+Result 4314
+
+Total Funded Amount
+select sum(loan_amount) as Total_Funded_Amount from bank_loan_data
+Result 435757075
+
+MTD Total Funded Amount
+select sum(loan_amount) as MTD_Total_Funded_Amount from bank_loan_data
+where month(issue_date) = 12 and year(issue_date) = 2021
+Result: 53981425
+
+PMTD (Previous MTD) Total Funded Amount
+select sum(loan_amount) as PMTD_Total_Funded_Amount from bank_loan_data
+where month(issue_date) = 11 and year(issue_date) = 2021
+
+Total Amount Received
+select sum(total_payment) as Total_Amount_Received from bank_loan_data
+Result: 473070933
+
+MTD Total Amount Received
+select sum(total_payment) as MTD_Total_Amount_Received from bank_loan_data
+where month(issue_date) = 12 and year(issue_date) = 2021
+Result: 58074380
+
+Average Interest_Rate  
+select avg(int_rate) * 100 as Avg_Interest_Rate from bank_loan_data
+Result: 12,0488313977619
+
+MTD Average Interest_Rate
+select round(avg(int_rate) * 100, 2) as MTD_Avg_Interest_Rate from bank_loan_data
+where month(issue_date) = 12 and year(issue_date) = 2021
+Reult: 12,36
+
+PMTD Average Interest_Rate
+select round(avg(int_rate) * 100, 2) as MTD_Avg_Interest_Rate from bank_loan_data
+where month(issue_date) = 11 and year(issue_date) = 2021
+Result: 11,94
+
+Average DTI (Debt-to-Income)
+select round(avg(dti) * 100,2) as Avg_DTI from bank_loan_data
+Result: 13,33
+
+MTD Average DTI
+select round(avg(dti) * 100,2) as MTD_Avg_DTI from bank_loan_data
+where month(issue_date) = 12 and year(issue_date) = 2021
+Result: 13,67
+
+PMTD Average DTI
+select round(avg(dti) * 100,2) as PMTD_Avg_DTI from bank_loan_data
+where month(issue_date) = 12 and year(issue_date) = 2021
+Result: 13,3
+
+Good loan percentage
+select (count(case when loan_status = 'Fully Paid' or loan_status = 'Current' then id end) * 100) 
+/ count(id) as Good_loan_percentage
+from bank_loan_data
+Result: 86
+
+Good loan applications
+select count(id) as Good_Loan_Applications
+from bank_loan_data
+where loan_status = 'Fully Paid' or loan_status = 'Current'
+Result: 33243
+
+Good Loan Funded Amount
+select sum(loan_amount) as Good_Loan_Funded_Amount from bank_loan_data
+where loan_status = 'Fully Paid' or loan_status = 'Current'
+Result: 370224850
+
+Good Loan Received Amount 
+select sum(total_payment) as Good_Loan_Received_Amount from bank_loan_data
+where loan_status = 'Fully Paid' or loan_status = 'Current'
+Result: 435786170
+
+Bad Loan Percentage 
+select round((count(case when loan_status = 'Charged Off' then id end) * 100.0) / count(id), 2) as Bad_Loan_Percentage from bank_loan_data
+Result: 13.820000000000
+
+Bank Loan Applications 
+select count(id) as Bank_Loan_Applications from bank_loan_data
+where loan_status = 'Charged Off'
+Result: 5333
+
+Bad Loan Funded Amount 
+select sum(loan_amount) as Bad_Loan_Funded_Amount from bank_loan_data
+where loan_status = 'Charged Off'
+Result: 65532225
+
+Bad Loan Amount Received 
+select sum(total_payment) as Bad_Loan_Amount_Received from bank_loan_data
+where loan_status = 'Charged Off'
+Result: 37284763
+
+Loans grouped by loan status with params for each group
+select loan_status, 
+count(id) as Loan_Count,
+sum(total_payment) as Total_Amount_Received,
+sum(loan_amount) as Total_Funded_Amount,
+avg(int_rate * 100) as Interest_Rate,
+avg(dti * 100) as DTI
+from bank_loan_data
+Result:
+Fully Paid	32145	411586256	351358350	11,64107077306	13,1673507543942
+Current	1098	24199914	18866500	15,0993260473588	14,7243442622951
+Charged Off	5333	37284763	65532225	13,8785749109318	14,0047327957997
+
+Loan status with MTD
+SELECT 
+	loan_status, 
+	SUM(total_payment) AS MTD_Total_Amount_Received, 
+	SUM(loan_amount) AS MTD_Total_Funded_Amount 
+FROM bank_loan_data
+WHERE MONTH(issue_date) = 12 
+GROUP BY loan_status
+Result:
+Fully Paid	47815851	41302025
+Current	4934318	3946625
+Charged Off	5324211	8732775
+
+Bank Loan Report
+SELECT 
+	MONTH(issue_date) AS Month_Munber, 
+	DATENAME(MONTH, issue_date) AS Month_name, 
+	COUNT(id) AS Total_Loan_Applications,
+	SUM(loan_amount) AS Total_Funded_Amount,
+	SUM(total_payment) AS Total_Amount_Received
+FROM bank_loan_data
+GROUP BY MONTH(issue_date), DATENAME(MONTH, issue_date)
+ORDER BY MONTH(issue_date)
+Result:
+1	Январь	2332	25031650	27578836
+2	Февраль	2279	24647825	27717745
+3	Март	2627	28875700	32264400
+4	Апрель	2755	29800800	32495533
+5	Май	2911	31738350	33750523
+6	Июнь	3184	34161475	36164533
+7	Июль	3366	35813900	38827220
+8	Август	3441	38149600	42682218
+9	Сентябрь	3536	40907725	43983948
+10	Октябрь	3796	44893800	49399567
+11	Ноябрь	4035	47754825	50132030
+12	Декабрь	4314	53981425	58074380
+
+State request
+SELECT 
+	address_state AS State, 
+	COUNT(id) AS Total_Loan_Applications,
+	SUM(loan_amount) AS Total_Funded_Amount,
+	SUM(total_payment) AS Total_Amount_Received
+FROM bank_loan_data
+GROUP BY address_state
+ORDER BY address_state
+AK	78	1031800	1108570
+AL	432	4949225	5492272
+AR	236	2529700	2777875
+AZ	833	9206000	10041986
+CA	6894	78484125	83901234
+CO	770	8976000	9845810
+CT	730	8435575	9357612
+DC	214	2652350	2921854
+DE	110	1138100	1269136
+FL	2773	30046125	31601905
+GA	1355	15480325	16728040
+HI	170	1850525	2080184
+IA	5	56450	64482
+ID	6	59750	65329
+IL	1486	17124225	18875941
+IN	9	86225	85521
+KS	260	2872325	3247394
+KY	320	3504100	3792530
+LA	426	4498900	5001160
+MA	1310	15051000	16676279
+MD	1027	11911400	12985170
+ME	3	9200	10808
+MI	685	7829900	8543660
+MN	592	6302600	6750746
+MO	660	7151175	7692732
+MS	19	139125	149342
+MT	79	829525	892047
+NC	759	8787575	9534813
+NE	5	31700	24542
+NH	161	1917900	2101386
+NJ	1822	21657475	23425159
+NM	183	1916775	2084485
+NV	482	5307375	5451443
+NY	3701	42077050	46108181
+OH	1188	12991375	14330148
+OK	293	3365725	3712649
+OR	436	4720150	4966903
+PA	1482	15826525	17462908
+RI	196	1883025	2001774
+SC	464	5080475	5462458
+SD	63	606150	656514
+TN	17	162175	141522
+TX	2664	31236650	34392715
+UT	252	2849225	2952412
+VA	1375	15982650	17711443
+VT	54	504100	534973
+WA	805	8855525	9531739
+WI	446	5070450	5485161
+WV	167	1830525	1991936
+WY	79	890750	1046050
+
+Term request
+SELECT 
+	term AS Term, 
+	COUNT(id) AS Total_Loan_Applications,
+	SUM(loan_amount) AS Total_Funded_Amount,
+	SUM(total_payment) AS Total_Amount_Received
+FROM bank_loan_data
+GROUP BY term
+ORDER BY term
+36 months	28237	273041225	294709458
+60 months	10339	162715850	178361475
+
+Employment length
+SELECT 
+	emp_length AS Employee_Length, 
+	COUNT(id) AS Total_Loan_Applications,
+	SUM(loan_amount) AS Total_Funded_Amount,
+	SUM(total_payment) AS Total_Amount_Received
+FROM bank_loan_data
+GROUP BY emp_length
+ORDER BY emp_length
+< 1 year	4575	44210625	47545011
+1 year	3229	32883125	35498348
+10+ years	8870	116115950	125871616
+2 years	4382	44967975	49206961
+3 years	4088	43937850	47551832
+4 years	3428	37600375	40964850
+5 years	3273	36973625	40397571
+6 years	2228	25612650	27908658
+7 years	1772	20811725	22584136
+8 years	1476	17558950	19025777
+9 years	1255	15084225	16516173
+
+Loan purpose
+SELECT 
+	purpose AS PURPOSE, 
+	COUNT(id) AS Total_Loan_Applications,
+	SUM(loan_amount) AS Total_Funded_Amount,
+	SUM(total_payment) AS Total_Amount_Received
+FROM bank_loan_data
+GROUP BY purpose
+ORDER BY purpose
+car	1497	10223575	11324914
+credit card	4998	58885175	65214084
+Debt consolidation	18214	232459675	253801871
+educational	315	2161650	2248380
+home improvement	2876	33350775	36380930
+house	366	4824925	5185538
+major purchase	2110	17251600	18676927
+medical	667	5533225	5851372
+moving	559	3748125	3999899
+other	3824	31155750	33289676
+renewable_energy	94	845750	898931
+small business	1776	24123100	23814817
+vacation	352	1967950	2116738
+wedding	928	9225800	10266856
+
+Loan purpose filtered
+SELECT 
+	purpose AS PURPOSE, 
+	COUNT(id) AS Total_Loan_Applications,
+	SUM(loan_amount) AS Total_Funded_Amount,
+	SUM(total_payment) AS Total_Amount_Received
+FROM bank_loan_data
+WHERE grade = 'A'
+GROUP BY purpose
+ORDER BY purpose
+car	577	3629475	3805538
+credit card	1353	12636075	13339495
+Debt consolidation	3753	37216300	38822971
+educational	79	484000	515639
+home improvement	933	8359175	8744006
+house	91	916575	957878
+major purchase	796	5344575	5604259
+medical	197	1471850	1526882
+moving	164	1069450	1099875
+other	1024	7043175	7397982
+renewable_energy	29	224150	225827
+small business	334	3172075	3190467
+vacation	122	683625	694542
+wedding	237	2001725	2126202
+
+Home ownership
+SELECT 
+	home_ownership AS Home_Ownership, 
+	COUNT(id) AS Total_Loan_Applications,
+	SUM(loan_amount) AS Total_Funded_Amount,
+	SUM(total_payment) AS Total_Amount_Received
+FROM bank_loan_data
+GROUP BY home_ownership
+ORDER BY home_ownership
+MORTGAGE	17198	219329150	238474438
+NONE	3	16800	19053
+OTHER	98	1044975	1025257
+OWN	2838	29597675	31729129
+RENT	18439	185768475	201823056
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
